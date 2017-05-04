@@ -11,6 +11,6 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// トップページ
+Route::get('/', 'WelcomeController@index');
+
