@@ -36,4 +36,75 @@ class User extends Model implements AuthenticatableContract,
      * @var array
      */
     protected $hidden = ['password', 'remember_token'];
+    
+    /**
+     * リレーション(多対多) users , items
+     * 
+     */
+    public function items()
+    {
+        return $this->belongsToMany(Item::class)->withPivot('type')->withTimestamps();
+    }
+    
+    /**
+     * type = 'want'のアイテム一覧を取得
+     * 
+     */
+    public function want_items()
+    {
+        return $this->items()->where('type', 'want');
+    }
+    
+    /**
+     * WANTした際に中間テーブルにデータを作成する
+     * 
+     */
+    public function want($itemId)
+    {
+        // 既に Wantしているかの確認
+        $exist = $this->is_wanting($itemId);
+        
+        if ($exist) {
+            // 既にWantしていれば何もしない
+            return false;
+        } else {
+            // 未 Want であれば Wantする
+            $this->items()->attach($itemId, ['type' => 'want']);
+            return true;
+        }
+    }
+    
+    /**
+     * WANTを外す
+     * 
+     */
+    public function dont_want($itemId)
+    {
+        // 既に Wantしているかの確認
+        $exist = $this->is_wanting($itemId);
+        
+        if ($exist) {
+            // 既にWantしていれば Want をはずす
+            \DB::delete("DELETE FROM item_user WHERE user_id = ? AND item_id = ? AND type = 'want'", [\Auth::user()->id, $itemId]);
+        } else {
+            // 未 Want であれば何もしない
+            return false;
+        }
+    }
+    
+    /**
+     * Want しているかを確認
+     * 
+     */
+    public function is_wanting($itemIdOrCode)
+    {
+        // 数値の場合、item_idとみなす
+        if (is_numeric($itemIdOrCode)) {
+            $item_id_exists = $this->want_items()->where('item_id', $itemIdOrCode)->exists();
+            return $item_id_exists;
+        } else {
+            $item_code_exists = $this->want_items()->where('code', $itemIdOrCode)->exists();
+            return $item_code_exists;
+        }
+    }
 }

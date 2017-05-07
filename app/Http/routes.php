@@ -25,5 +25,14 @@ Route::get('logout', 'Auth\AuthController@getLogout')->name('logout.get');
 
 // 認証系
 Route::group(['middleware' => 'auth'], function() {
-   Route::resource('items', 'ItemsController', ['only' => ['create']]); 
+    
+    // アイテム
+    Route::resource('items', 'ItemsController', ['only' => ['create', 'show']]); 
+    
+    // Want
+    Route::post('want', 'ItemUserController@want')->name('item_user.want');
+    Route::delete('want', 'ItemUserController@dont_want')->name('item_user.dont_want');
+    
+    // ユーザのWantしたアイテム一覧
+    Route::resource('users', 'UsersController', ['only' => ['show']]);
 });
