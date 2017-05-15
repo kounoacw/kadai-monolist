@@ -107,4 +107,66 @@ class User extends Model implements AuthenticatableContract,
             return $item_code_exists;
         }
     }
+    
+    /**
+     * type = 'have' のアイテム一覧を取得
+     * 
+     */
+    public function have_items()
+    {
+        return $this->items()->where('type', 'have');
+    }
+    
+    /**
+     * Have した際に中間テーブルにデータを作成する
+     * 
+     */
+    public function have($itemId)
+    {
+        // 既に Haveしているかの確認
+        $exist = $this->is_having($itemId);
+        
+        if ($exist) {
+            // 既にHaveしていれば何もしない
+            return false;
+        } else {
+            // 未 Have であれば Haveする
+            $this->items()->attach($itemId, ['type' => 'have']);
+            return true;
+        }
+    }
+    
+    /**
+     * HAVEをはずす
+     * 
+     */
+    public function dont_have($itemId)
+    {
+        // 既に Haveしているかの確認
+        $exist = $this->is_having($itemId);
+        
+        if ($exist) {
+            // 既にHaveしていれば Have をはずす
+            \DB::delete("DELETE FROM item_user WHERE user_id = ? AND item_id = ? AND type = 'have'", [\Auth::user()->id, $itemId]);
+        } else {
+            // 未 Have であれば何もしない
+            return false;
+        }
+    }
+    
+    /**
+     * Have しているかを確認
+     * 
+     */
+    public function is_having($itemIdOrCode)
+    {
+        // 数値の場合、item_idとみなす
+        if (is_numeric($itemIdOrCode)) {
+            $item_id_exists = $this->have_items()->where('item_id', $itemIdOrCode)->exists();
+            return $item_id_exists;
+        } else {
+            $item_code_exists = $this->have_items()->where('code', $itemIdOrCode)->exists();
+            return $item_code_exists;
+        }
+    }
 }

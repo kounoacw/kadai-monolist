@@ -150,7 +150,6 @@ return [
          */
         Collective\Html\HtmlServiceProvider::class,
         Thomaswelton\LaravelGravatar\LaravelGravatarServiceProvider::class,
-
     ],
 
     /*
